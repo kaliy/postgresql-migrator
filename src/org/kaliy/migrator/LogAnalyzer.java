@@ -13,6 +13,7 @@ public class LogAnalyzer {
     private static Logger logger = LoggerFactory.getLogger(LogAnalyzer.class);
 
     private List<String> queries = new ArrayList<String>();
+    private List<Long> blobIDs = new ArrayList<Long>();
     private String filename;
 
     private FileInputStream fileInputStream;
@@ -23,7 +24,7 @@ public class LogAnalyzer {
     }
 
     /**
-     * Filling queries array
+     * Filling queries and BLOBs IDs Lists
      */
     private void analyze() {
         try {
@@ -42,8 +43,15 @@ public class LogAnalyzer {
                     String query;
                     if (!line.contains("$1"))
                         query = getUnparsedQueryFromLine(line);
-                    else
-                        query = getQueryFromTwoLines(line, bufferedReader.readLine());
+                    else {
+                        String parametersLine = bufferedReader.readLine();
+                        if (StringUtils.containsIgnoreCase(line, "insert into common.file")) {
+                            Long blobId = Long.parseLong(getParametersFromLine(parametersLine).get(1).replaceAll("[^0-9]", ""));
+                            logger.debug("Adding BLOB ID to List: {}", blobId);
+                            blobIDs.add(blobId);
+                        }
+                        query = getQueryFromTwoLines(line, parametersLine);
+                    }
                     logger.debug("Adding query to List: {}", query);
                     queries.add(query);
                 }
@@ -116,5 +124,9 @@ public class LogAnalyzer {
 
     public List<String> getQueries() {
         return queries;
+    }
+
+    public List<Long> getBlobIDs() {
+        return blobIDs;
     }
 }

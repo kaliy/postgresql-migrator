@@ -89,7 +89,6 @@
         </copy>
         <copy todir="bin/dist">
             <fileset dir=".">
-                <include name="logback.xml"/>
                 <include name="migrator.properties"/>
             </fileset>
         </copy>

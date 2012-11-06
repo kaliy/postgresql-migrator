@@ -1,0 +1,21 @@
+glob:*.log
+
+# Build tools artifacts
+regexp:^target
+regexp:^\.directory
+regexp:^out
+regexp:^bin
+
+# IDEA artifacts
+regexp:^\.idea
+glob:*.iml
+
+# Mercurial and exotic editors artifacts
+glob:*.swp
+glob:*.orig
+
+# Eclipse artifacts
+regexp:^\.project
+regexp:^\.classpath
+regexp:^\.settings
+regexp:^\.externalToolBuilders

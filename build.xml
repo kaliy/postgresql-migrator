@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project basedir="." default="build" name="migrator">
+
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <property name="version" value="0.1"/>
+
+    <path id="libs">
+        <fileset dir="lib">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="migrator.classpath">
+        <pathelement location="bin/classes"/>
+        <path refid="libs"/>
+    </path>
+
+    <target name="init">
+        <mkdir dir="bin/classes"/>
+        <copy includeemptydirs="false" todir="bin/classes">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="clean">
+        <delete dir="bin/classes"/>
+    </target>
+
+    <target depends="hg-update,clean,build-project,build-client" name="build" />
+
+    <target depends="pre-zip-client,jar-client,zip-client" name="build-client"/>
+
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac encoding="utf-8" debug="true" debuglevel="${debuglevel}" destdir="bin/classes" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="migrator.classpath"/>
+        </javac>
+    </target>
+
+    <target name="zip-client">
+        <delete file="bin/migrator-${version}.zip"/>
+        <zip destfile="bin/migrator-${version}.zip">
+            <fileset dir="bin/dist">
+                <exclude name="bin/**"/>
+            </fileset>
+        </zip>
+    </target>
+
+    <target name="jar-client">
+        <pathconvert property="libs.client" pathsep=" ">
+            <mapper>
+                <chainedmapper>
+                    <globmapper from="${basedir}/lib/*" to="lib/*" handledirsep="true"/>
+                    <filtermapper>
+                        <replacestring from="\" to="/"/>
+                    </filtermapper>
+                </chainedmapper>
+            </mapper>
+            <path>
+                <fileset dir="lib">
+                    <include name="**/*.jar" />
+                </fileset>
+            </path>
+        </pathconvert>
+        <jar jarfile="bin/dist/migrator-${version}.jar" basedir="bin/dist/bin">
+            <manifest>
+                <attribute name="Main-Class" value="org.kaliy.migrator.Kernel" />
+                <attribute name="Class-Path" value="${libs.client}" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="pre-zip-client">
+        <delete dir="bin/dist"/>
+        <mkdir dir="bin/dist"/>
+        <copy todir="bin/dist/bin">
+            <fileset dir="bin/classes"/>
+        </copy>
+        <copy todir="bin/dist/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="bin/dist">
+            <fileset dir=".">
+                <include name="logback.xml"/>
+                <include name="migrator.properties"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="hg-update">
+        <exec executable="hg">
+            <arg value="pull"/>
+        </exec>
+        <exec executable="hg">
+            <arg value="update"/>
+            <arg value="tip"/>
+        </exec>
+        <exec executable="hg">
+            <arg value="merge"/>
+            <arg value="-f"/>
+        </exec>
+    </target>
+</project>

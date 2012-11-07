@@ -116,7 +116,7 @@ public class LogAnalyzer {
         int index = 1;
         String query = getUnparsedQueryFromLine(line);
         for (String parameter: getParametersFromLine(parameters)) {
-            query = query.replace("$" + index++, parameter);
+            query = query.replaceFirst("\\$" + index++, parameter);
         }
         return query;
     }
